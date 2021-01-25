@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+<body>
+    <form id="login-form" >
+        <input id="username" name="username" style="display: block; border-color: black;" type="text" />
+        <input id="password" name="password" style="display: block; border-color: black;" type="password" />
+        <button type="submit" > submit </button>
+    </form>
+
+    <div id="profile-result">
+
+    </div>
+
+
+    <script>
+        const form = document.getElementById("login-form");
+        form.addEventListener("submit", async (e) => {
+            try {
+                e.preventDefault();
+    
+                const username = e.target.elements.username.value;
+                const password = e.target.elements.password.value;
+    
+                // login request
+                var myHeaders = new Headers();
+                myHeaders.append("Content-Type", "application/json");
+                var raw = JSON.stringify({ username, password });    
+                var requestOptions = {
+                    method: 'POST',
+                    headers: myHeaders,
+                    body: raw,
+                    redirect: 'follow'
+                };
+                const loginResonse = await fetch("/api/user/login", requestOptions).then(response => response.json());
+
+
+                const { token } = loginResonse;
+                if(token) {
+                    localStorage.setItem("token", token);
+                    getProfile()
+                }
+            } catch (err) {
+                console.error(err);
+            }            
+        })
+
+
+        async function getProfile() {
+            // profile request
+            const profileHeaders = new Headers();
+            profileHeaders.append("Authorization", localStorage.getItem("token"));
+            var requestOptions = {
+                method: 'GET',
+                headers: profileHeaders,
+                redirect: 'follow'
+            };
+            const profile = await fetch("/api/user/profile", requestOptions).then(response => response.json());
+
+            document.getElementById("profile-result").innerText = JSON.stringify(profile);
+        }
+    </script>
+</body>
+</html>
